@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>caro-phonel — Design Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #0d1117;
+      --bg-surface: #161b22;
+      --bg-elevated: #21262d;
+      --board-bg: #2d1f0f;
+      --board-line: #4a3728;
+      --board-hover: #3d2a16;
+      --stone-black: #1a1a1a;
+      --stone-black-accent: #333333;
+      --stone-white: #e8e8e8;
+      --stone-white-border: #888888;
+      --stone-win: #ffd700;
+      --accent-primary: #c9a227;
+      --accent-secondary: #8b6914;
+      --accent-success: #238636;
+      --accent-error: #da3633;
+      --accent-warning: #d29922;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-on-accent: #0d1117;
+      --border-default: #30363d;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-modal: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    nav {
+      width: 240px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-default);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    nav h2 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .nav-btn:hover { background: var(--bg-elevated); border-color: var(--border-default); }
+    .nav-btn.active { background: var(--bg-elevated); border-color: var(--accent-primary); color: var(--accent-primary); }
+    .nav-section { margin-bottom: 16px; }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #viewport-toggle {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--bg-surface);
+    }
+    #viewport-toggle span { font-size: 14px; color: var(--text-secondary); }
+    .vp-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .vp-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); }
+    #screen-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+    #screen-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      transition: max-width 0.3s;
+    }
+    #screen-wrapper.mobile { max-width: 375px; }
+    section { display: none; }
+    section.active { display: block; }
+
+    /* --- Button --- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all 0.15s;
+      font-family: inherit; min-height: 44px;
+    }
+    .btn-primary { background: var(--accent-primary); color: var(--text-on-accent); border-color: var(--accent-primary); }
+    .btn-primary:hover { background: var(--accent-secondary); }
+    .btn-secondary { background: transparent; border-color: var(--border-default); color: var(--text-primary); }
+    .btn-secondary:hover { border-color: var(--text-secondary); }
+    .btn-ghost { background: transparent; color: var(--text-secondary); }
+    .btn-ghost:hover { color: var(--text-primary); }
+    .btn-danger { background: var(--accent-error); color: white; border-color: var(--accent-error); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 12px; font-size: 14px; min-height: 36px; }
+    .btn-lg { padding: 14px 28px; font-size: 18px; min-height: 52px; }
+
+    /* --- Card --- */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+    .card.hoverable { cursor: pointer; transition: all 0.15s; }
+    .card.hoverable:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--text-secondary); }
+
+    /* --- Input --- */
+    .input-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .input-label { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+    .input {
+      background: var(--bg-page);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(201,162,39,0.2); }
+    .input::placeholder { color: var(--text-secondary); }
+    .input-error { border-color: var(--accent-error); }
+    .input-error-msg { font-size: 12px; color: var(--accent-error); }
+
+    /* --- Badge --- */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;
+    }
+    .badge-info { background: rgba(56,139,253,0.15); color: #388bfd; }
+    .badge-success { background: rgba(35,134,54,0.15); color: #3fb950; }
+    .badge-warning { background: rgba(210,153,34,0.15); color: #d29922; }
+    .badge-error { background: rgba(218,54,51,0.15); color: #f85149; }
+    .badge-neutral { background: var(--bg-elevated); color: var(--text-secondary); }
+
+    /* --- Modal --- */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--shadow-modal);
+      max-width: 400px; width: 90%;
+    }
+    .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; font-size: 20px; padding: 4px;
+    }
+
+    /* --- Game Board --- */
+    .board-wrapper {
+      position: relative;
+      background: var(--board-bg);
+      border-radius: 4px;
+      padding: 8px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 0;
+      width: 100%;
+      aspect-ratio: 1;
+    }
+    .cell {
+      aspect-ratio: 1;
+      background: var(--board-bg);
+      border: 1px solid var(--board-line);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      cursor: default;
+    }
+    .cell.interactive { cursor: pointer; }
+    .cell.interactive:hover { background: var(--board-hover); }
+    .cell.disabled { cursor: not-allowed; }
+    .stone {
+      width: 80%; height: 80%;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .stone.black {
+      background: var(--stone-black);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+    .stone.white {
+      background: var(--stone-white);
+      border: 1px solid var(--stone-white-border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .stone.win { box-shadow: 0 0 0 3px var(--stone-win), 0 0 16px var(--stone-win); }
+    .cell.last-move::after {
+      content: ''; position: absolute; width: 6px; height: 6px;
+      background: var(--accent-primary); border-radius: 50%;
+    }
+
+    /* --- PlayerPanel --- */
+    .player-panel {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-default);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+      transition: all 0.2s;
+    }
+    .player-panel.active { border-color: var(--accent-primary); box-shadow: 0 0 12px rgba(201,162,39,0.3); }
+    .player-stone { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+    .player-stone.black { background: var(--stone-black); }
+    .player-stone.white { background: var(--stone-white); border: 1px solid var(--stone-white-border); }
+    .player-name { font-size: 14px; font-weight: 500; }
+    .player-status { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* --- Lobby Layout --- */
+    .lobby { display: flex; flex-direction: column; gap: 24px; }
+    .lobby-header { text-align: center; padding: 32px 0; }
+    .lobby-header h1 { font-size: 48px; font-weight: 700; color: var(--accent-primary); letter-spacing: -1px; }
+    .lobby-header p { color: var(--text-secondary); margin-top: 8px; }
+    .lobby-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .lobby-grid { grid-template-columns: 1fr; } }
+    .lobby-grid h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 16px; }
+    .join-form { display: flex; gap: 8px; }
+    .join-form .input { flex: 1; }
+    .room-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+    .room-item { display: flex; justify-content: space-between; align-items: center; }
+    .room-name { font-weight: 500; }
+    .room-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* --- Create Room Modal Content --- */
+    .create-modal { display: flex; flex-direction: column; gap: 16px; }
+    .code-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px; font-weight: 500;
+      text-align: center;
+      padding: 16px;
+      background: var(--bg-page);
+      border-radius: 8px;
+      letter-spacing: 4px;
+      color: var(--accent-primary);
+    }
+
+    /* --- Game Screen Layout --- */
+    .game-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr 200px;
+      gap: 24px;
+      height: 100%;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+      .game-sidebar { display: flex; gap: 16px; }
+    }
+    .game-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .game-center { display: flex; flex-direction: column; gap: 12px; }
+    .game-history { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; padding: 12px; max-height: 150px; overflow-y: auto; }
+    .game-history h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 8px; }
+    .move-list { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+    .move-item { display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border-default); }
+    .move-num { color: var(--text-secondary); width: 24px; }
+    .move-notation { font-family: 'JetBrains Mono', monospace; }
+
+    /* --- Result Modal --- */
+    .result-modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      max-width: 360px;
+      box-shadow: var(--shadow-modal);
+    }
+    .result-icon { font-size: 48px; margin-bottom: 16px; }
+    .result-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .result-title.win { color: var(--accent-success); }
+    .result-title.lose { color: var(--accent-error); }
+    .result-title.draw { color: var(--accent-warning); }
+    .result-reason { color: var(--text-secondary); margin-bottom: 24px; font-size: 16px; }
+    .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* --- Waiting Room --- */
+    .waiting-room { text-align: center; padding: 48px 24px; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border-default);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .room-code-lg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 48px; font-weight: 700;
+      color: var(--accent-primary);
+      letter-spacing: 6px;
+      margin: 24px 0;
+    }
+    .copy-row { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+    .copy-row .input { text-align: center; max-width: 160px; font-family: 'JetBrains Mono', monospace; font-size: 20px; letter-spacing: 4px; text-transform: uppercase; }
+
+    /* --- Toast --- */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      padding: 12px 20px; border-radius: 8px;
+      box-shadow: var(--shadow-modal);
+      font-size: 14px;
+      z-index: 200;
+      animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h2>caro-phonel</h2>
+  <div class="nav-section">
+    <h2>Screens</h2>
+    <button class="nav-btn active" data-screen="lobby">Lobby</button>
+    <button class="nav-btn" data-screen="create-room">Create Room Modal</button>
+    <button class="nav-btn" data-screen="waiting-room">Waiting Room</button>
+    <button class="nav-btn" data-screen="game">Game Screen</button>
+    <button class="nav-btn" data-screen="result-win">Result — Win</button>
+    <button class="nav-btn" data-screen="result-lose">Result — Lose</button>
+    <button class="nav-btn" data-screen="result-draw">Result — Draw</button>
+  </div>
+</nav>
+
+<main>
+  <div id="viewport-toggle">
+    <span>Preview:</span>
+    <button class="vp-btn active" data-vp="desktop">Desktop</button>
+    <button class="vp-btn" data-vp="mobile">Mobile (375px)</button>
+  </div>
+  <div id="screen-container">
+    <div id="screen-wrapper">
+
+      <!-- LOBBY -->
+      <section data-screen="lobby" class="active">
+        <div class="lobby">
+          <div class="lobby-header">
+            <h1>caro-phonel</h1>
+            <p>Gomoku · Caro · Five-in-a-row</p>
+          </div>
+          <div class="lobby-grid">
+            <div>
+              <button class="btn btn-primary btn-lg" style="width:100%" onclick="showModal('create-room-modal')">TẠO PHÒNG MỚI</button>
+              <div style="margin-top: 24px;">
+                <h2>Mã phòng</h2>
+                <div class="join-form" style="margin-top:8px">
+                  <input type="text" class="input" placeholder="ABC123" maxlength="6" style="font-family:'JetBrains Mono',monospace;text-transform:uppercase;text-align:center;letter-spacing:4px">
+                  <button class="btn btn-secondary">Vào phòng</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h2>Phòng công</h2>
+              <div class="room-list">
+                <div class="card hoverable room-item">
+                  <div>
+                    <div class="room-name">Phòng của Minh</div>
+                    <div class="room-meta">1/2 người chơi</div>
+                  </div>
+                  <span class="badge badge-info">Đợi</span>
+                </div>
+                <div class="card hoverable room-item">
+                  <div class="room-name">Phòng Lan</div>
+                  <div class="room-meta">1/2 người chơi</div>
+                  <span class="badge badge-info">Đợi</span>
+                </div>
+                <div class="card hoverable room-item">
+                  <div class="room-name">Phòng thử nghiệm</div>
+                  <div class="room-meta">0/2 người chơi</div>
+                  <span class="badge badge-neutral">Trống</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CREATE ROOM MODAL -->
+      <section data-screen="create-room">
+        <div class="modal-backdrop" style="position:relative;background:var(--bg-page);justify-content:center;">
+          <div class="modal" style="max-width:360px;position:relative;">
+            <div class="modal-title">Tạo phòng mới</div>
+            <div class="input-wrap">
+              <label class="input-label">Tên của bạn (tùy chọn)</label>
+              <input type="text" class="input" placeholder="Anonymous" maxlength="20">
+            </div>
+            <div style="margin-top: 4px;">
+              <label class="input-label" style="color:var(--text-secondary);font-size:12px">Để trống = "Anonymous"</label>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+              <button class="btn btn-ghost" style="flex:1" onclick="showScreen('lobby')">Hủy</button>
+              <button class="btn btn-primary" style="flex:1" onclick="showCode()">Tạo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WAITING ROOM -->
+      <section data-screen="waiting-room">
+        <div class="waiting-room">
+          <div class="spinner"></div>
+          <h2 style="font-size:20px;font-weight:600;">Đang chờ người chơi thứ 2...</h2>
+          <p style="color:var(--text-secondary);margin-top:8px;">Chia sẻ mã phòng để mời bạn bè</p>
+          <div class="room-code-lg" id="room-code-display">ABC123</div>
+          <div class="copy-row">
+            <input type="text" class="input" id="share-link" value="caro-phonel.vercel.app/room/ABC123" readonly>
+            <button class="btn btn-secondary btn-sm" onclick="copyShare()">Copy</button>
+          </div>
+          <div class="card" style="max-width:240px;margin:24px auto 0;">
+            <div style="font-size:14px;font-weight:500;margin-bottom:8px;">Người chơi</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-default);">
+              <div class="player-stone black"></div>
+              <span>Minh</span>
+              <span class="badge badge-success" style="margin-left:auto;">Host</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;color:var(--text-secondary);">
+              <div style="width:24px;height:24px;"></div>
+              <span>Chờ...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GAME SCREEN -->
+      <section data-screen="game">
+        <div class="game-layout">
+          <div class="game-sidebar">
+            <div class="player-panel active">
+              <div class="player-stone black"></div>
+              <div style="flex:1">
+                <div class="player-name">Minh (Bạn)</div>
+                <div class="player-status" style="color:var(--accent-primary);">Lượt của bạn</div>
+              </div>
+            </div>
+            <div class="player-panel" style="margin-top:auto;">
+              <div class="player-stone white"></div>
+              <div style="flex:1">
+                <div class="player-name">Lan</div>
+                <div class="player-status">Chờ...</div>
+              </div>
+            </div>
+          </div>
+          <div class="game-center">
+            <div class="board-wrapper">
+              <div class="board" id="game-board">
+                <!-- Generated by JS -->
+              </div>
+            </div>
+            <div class="game-history">
+              <h3>Nước đi</h3>
+              <div class="move-list" id="move-list">
+                <div class="move-item">
+                  <span class="move-num">1.</span>
+                  <span class="move-notation">H7 (Minh, ⬤)</span>
+                </div>
+                <div class="move-item">
+                  <span class="move-num">2.</span>
+                  <span class="move-notation">H8 (Lan, ⬤)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+            <div class="card" style="width:100%;">
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">PHÒNG</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--accent-primary);letter-spacing:2px;">ABC123</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">Sao chép mã</button>
+            <button class="btn btn-danger btn-sm" style="width:100%;margin-top:auto;">Thoát</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULT WIN -->
+      <section data-screen="result-win">
+        <div class="modal-backdrop" style="position:relative;background:rgba(0,0,0,0.5);justify-content:center;">
+          <div class="result-modal">
+            <div class="result-icon">✨</div>
+            <div class="result-title win">BẠN THẮNG!</div>
+            <div class="result-reason">5 đường thẳng</div>
+            <div style="margin-bottom:24px;">
+              <div style="display:flex;justify-content:center;gap:16px;font-size:14px;">
+                <span><span style="color:var(--text-secondary)">Bạn:</span> Minh</span>
+                <span><span style="color:var(--text-secondary)">Đối thủ:</span> Lan</span>
+              </div>
+            </div>
+            <div class="result-actions">
+              <button class="btn btn-primary">Đấu lại</button>
+              <button class="btn btn-secondary">Chơi mới</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULT LOSE -->
+      <section data-screen="result-lose">
+        <div class="modal-backdrop" style="position:relative;background:rgba(0,0,0,0.5);justify-content:center;">
+          <div class="result-modal">
+            <div class="result-icon">😔</div>
+            <div class="result-title lose">BẠN THUA!</div>
+            <div class="result-reason">Đối thủ được 5 đường thẳng</div>
+            <div class="result-actions">
+              <button class="btn btn-primary">Đấu lại</button>
+              <button class="btn btn-secondary">Chơi mới</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULT DRAW -->
+      <section data-screen="result-draw">
+        <div class="modal-backdrop" style="position:relative;background:rgba(0,0,0,0.5);justify-content:center;">
+          <div class="result-modal">
+            <div class="result-icon">🤝</div>
+            <div class="result-title draw">HÒA!</div>
+            <div class="result-reason">Cờ đầy — không ai thắng</div>
+            <div class="result-actions">
+              <button class="btn btn-primary">Đấu lại</button>
+              <button class="btn btn-secondary">Chơi mới</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // Screen switching
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`section[data-screen="${btn.dataset.screen}"]`).classList.add('active');
+    });
+  });
+
+  // Viewport toggle
+  document.querySelectorAll('.vp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('screen-wrapper').classList.toggle('mobile', btn.dataset.vp === 'mobile');
+    });
+  });
+
+  function showScreen(name) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.querySelector(`section[data-screen="${name}"]`).classList.add('active');
+    document.querySelector(`.nav-btn[data-screen="${name}"]`)?.classList.add('active');
+  }
+
+  function copyShare() {
+    const inp = document.getElementById('share-link');
+    inp.select();
+    document.execCommand('copy');
+    alert('Đã sao chép!');
+  }
+
+  // Generate a demo board with some stones placed
+  function generateBoard() {
+    const board = document.getElementById('game-board');
+    const demoMoves = [
+      [3,8,1],[4,9,2],[5,7,1],[6,8,2],[7,6,1],[8,8,2],[6,6,1],[7,7,2],[7,5,1]
+    ];
+    const lastMove = [7,5];
+    let html = '';
+    for (let r = 0; r < 15; r++) {
+      for (let c = 0; c < 15; c++) {
+        let cls = 'cell';
+        let stoneHtml = '';
+        let isLast = (r === lastMove[0] && c === lastMove[1]);
+        const move = demoMoves.find(m => m[0] === r && m[1] === c);
+        if (move) {
+          stoneHtml = `<div class="stone ${move[2] === 1 ? 'black' : 'white'}${isLast ? ' win' : ''}"></div>`;
+          if (isLast) cls += ' last-move';
+        } else {
+          cls += ' interactive disabled'; // not your turn demo
+        }
+        html += `<div class="${cls}">${stoneHtml}</div>`;
+      }
+    }
+    board.innerHTML = html;
+  }
+  generateBoard();
+</script>
+</body>
+</html>
