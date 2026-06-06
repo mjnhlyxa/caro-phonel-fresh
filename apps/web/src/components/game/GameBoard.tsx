@@ -37,7 +37,7 @@ export default function GameBoard({
 
   // Helper to check if cell is last move
   const isCellLastMove = (row: number, col: number) => {
-    return lastMove && lastMove.row === row && lastMove.col === col;
+    return !!(lastMove && lastMove.row === row && lastMove.col === col);
   };
 
   return (

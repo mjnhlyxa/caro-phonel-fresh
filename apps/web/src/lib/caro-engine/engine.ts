@@ -69,13 +69,13 @@ export function checkWin(
   ];
 
   for (const [dr, dc] of directions) {
-    const cells: Position[] = [[row, col]];
+    const cells: Position[] = [{ row, col }];
 
     // Count in positive direction
     let r = row + dr;
     let c = col + dc;
     while (isValidPosition(r, c) && board[r][c] === player) {
-      cells.push([r, c]);
+      cells.push({ row: r, col: c });
       r += dr;
       c += dc;
     }
@@ -84,7 +84,7 @@ export function checkWin(
     r = row - dr;
     c = col - dc;
     while (isValidPosition(r, c) && board[r][c] === player) {
-      cells.push([r, c]);
+      cells.push({ row: r, col: c });
       r -= dr;
       c -= dc;
     }
